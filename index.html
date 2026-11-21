@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SKYSTRIKE — 60-Second Aim Arena</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main id="app">
+      <header id="hud" class="hidden">
+        <div class="hud-cell"><span class="hud-label">TIME</span><span id="hud-time">60.0</span></div>
+        <div class="hud-cell"><span class="hud-label">SCORE</span><span id="hud-score">0</span></div>
+        <div class="hud-cell"><span class="hud-label">COMBO</span><span id="hud-combo">×1</span></div>
+        <div class="hud-cell"><span class="hud-label">ACCURACY</span><span id="hud-acc">—</span></div>
+      </header>
+
+      <section id="stage">
+        <canvas id="game" width="960" height="600"></canvas>
+
+        <div id="attract" class="overlay">
+          <p class="kicker">CLOUD9 × JETBRAINS · EVENT MINI GAME</p>
+          <h1>SKY<span>STRIKE</span></h1>
+          <p class="tagline">The 60-second aim arena. Pop the sky orbs, chain combos,<br />dodge the bombs, chase the golden orb.</p>
+          <button id="btn-play" class="big-btn">▶ CLICK TO PLAY</button>
+          <p class="hint">Mouse only · No tutorial needed · One round = 60 seconds</p>
+          <div class="board">
+            <h2>🏆 TODAY'S TOP PILOTS</h2>
+            <ol id="attract-board"></ol>
+          </div>
+        </div>
+
+        <div id="score" class="overlay hidden">
+          <p class="kicker">ROUND COMPLETE</p>
+          <h2 id="grade">SKY CHAMPION</h2>
+          <p id="final-score">0</p>
+          <div id="stat-grid">
+            <div><span class="stat-num" id="stat-acc">0%</span><span class="stat-label">Accuracy</span></div>
+            <div><span class="stat-num" id="stat-reaction">—</span><span class="stat-label">Avg reaction</span></div>
+            <div><span class="stat-num" id="stat-combo">×0</span><span class="stat-label">Best combo</span></div>
+            <div><span class="stat-num" id="stat-hits">0</span><span class="stat-label">Targets hit</span></div>
+          </div>
+          <div id="save-row">
+            <label for="initials">NEW HIGH SCORE! ENTER YOUR TAG:</label>
+            <div class="save-controls">
+              <input id="initials" maxlength="10" value="ACE" autocomplete="off" />
+              <button id="btn-save" class="big-btn small">SAVE</button>
+            </div>
+          </div>
+          <div class="board">
+            <h2>🏆 TODAY'S TOP PILOTS</h2>
+            <ol id="score-board"></ol>
+          </div>
+          <button id="btn-again" class="big-btn">↻ PLAY AGAIN</button>
+          <p class="hint" id="reset-note">Returning to the start screen in <span id="reset-count">15</span>s…</p>
+        </div>
+      </section>
+
+      <footer>
+        <span>SKYSTRIKE — built with WebStorm &amp; Junie for the Cloud9 × JetBrains Hackathon</span>
+        <button id="btn-sound" title="Toggle sound">🔊</button>
+      </footer>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
