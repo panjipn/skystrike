@@ -43,6 +43,11 @@ let score = 0, combo = 0, bestCombo = 0, hits = 0, shots = 0;
 let reactionSum = 0, reactionCount = 0;
 let roundEndsAt = 0, lastSpawnAt = 0, raf = 0, lastFrameAt = 0;
 let resetTimer: number | undefined, resetCountTimer: number | undefined;
+let frenzyPlayed = false;
+
+function isFrenzy(now: number): boolean {
+  return state === "playing" && roundEndsAt - now <= 10000;
+}
 
 // Difficulty ramps across the round: spawns get faster, targets live
 // shorter and drift more as the clock runs down.
@@ -111,7 +116,8 @@ function handleClick(mx: number, my: number, now: number): void {
         hits++;
         reactionSum += reaction; reactionCount++;
         const mult = Math.min(5, 1 + Math.floor(combo / 5));
-        const pts = pointsFor(t, reaction) * mult * (t.kind === "gold" ? 3 : 1);
+        const frenzyMult = isFrenzy(now) ? 2 : 1;
+        const pts = pointsFor(t, reaction) * mult * (t.kind === "gold" ? 3 : 1) * frenzyMult;
         score += pts;
         burst(t.x, t.y, t.kind === "gold" ? "#ffc93c" : "#57d7ff", t.kind === "gold" ? 20 : 12);
         addFloat(t.x, t.y, `+${pts}`, t.kind === "gold" ? "#ffc93c" : "#aee9ff");
@@ -179,6 +185,19 @@ function drawCloud(c: Cloud): void {
   ctx.restore();
 }
 
+function drawFrenzyBanner(now: number): void {
+  const pulse = 0.85 + Math.sin(now / 150) * 0.15;
+  ctx.save();
+  ctx.fillStyle = `rgba(255, 60, 60, ${pulse.toFixed(2)})`;
+  ctx.fillRect(0, 0, W, 44);
+  ctx.fillStyle = "#fff";
+  ctx.font = '800 26px "Segoe UI", sans-serif';
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("FRENZY ×2", W / 2, 22);
+  ctx.restore();
+}
+
 function frame(now: number): void {
   const dt = Math.min(0.05, (now - lastFrameAt) / 1000 || 0);
   lastFrameAt = now;
@@ -206,6 +225,11 @@ function frame(now: number): void {
     const remainMs = roundEndsAt - now;
     hudTime.textContent = (Math.max(0, remainMs) / 1000).toFixed(1);
     if (remainMs <= 0) { endRound(); }
+    // Frenzy Finish: last 10 seconds
+    if (isFrenzy(now)) {
+      if (!frenzyPlayed) { frenzyPlayed = true; sfx.gold(); }
+      drawFrenzyBanner(now);
+    }
   }
   particles = particles.filter((p) => (p.life -= dt) > 0);
   for (const p of particles) {
@@ -232,6 +256,7 @@ function startRound(): void {
   score = 0; combo = 0; bestCombo = 0; hits = 0; shots = 0;
   reactionSum = 0; reactionCount = 0;
   targets = []; particles = []; floats = [];
+  frenzyPlayed = false;
   state = "playing";
   const now = performance.now();
   roundEndsAt = now + ROUND_SECONDS * 1000;
