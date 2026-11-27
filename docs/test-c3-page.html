@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C3 deep-link test — Meta mobile (test accounts only)</title>
+<style>
+  body { font-family: sans-serif; margin: 20px; background: #111; color: #ddd; }
+  h1 { font-size: 18px; }
+  p { font-size: 14px; color: #aaa; }
+  a { display: block; margin: 12px 0; padding: 14px; background: #1e3a5f; color: #fff;
+      text-decoration: none; border-radius: 8px; font-size: 15px; }
+  a.base { background: #333; }
+  code { color: #9cf; }
+</style>
+</head>
+<body>
+<h1>C3 — Mobile deep-link test (test accounts only)</h1>
+<p>Buka halaman ini dari <b>in-app browser Instagram</b> (via link DM), lalu ketuk SATU PER SATU.
+Catat + screenshot apa yang terbuka tiap ketukan. Yang dicari: layar privat yang terbuka
+DAN melakukan aksi / menampilkan data — bukan sekadar navigasi.</p>
+
+<a href="instagram://account_center">1. instagram://account_center (canary Meta)</a>
+<a href="fb://avatar">2. fb://avatar (canary Meta)</a>
+<a href="intent://account_center#Intent;scheme=instagram;package=com.instagram.android;end">3. intent:// account_center (IG)</a>
+<a href="intent://avatar#Intent;scheme=fb;package=com.facebook.katana;end">4. intent:// avatar (FB)</a>
+<a href="https://www.instagram.com/accounts/account_center/">5. https://www.instagram.com/accounts/account_center/ (https)</a>
+<a class="base" href="instagram://user?username=parezz321">6. BASELINE (by design): instagram://user?username=parezz321</a>
+
+<p>Canary Bloks Meta: <code>com.bloks.www.screen_query.BloksUSFPrivacyCheckupRootScreenQuery</code>
+— picu bila format deep-link Bloks-nya diketahui; catat bila ada mutasi/state yang berubah.</p>
+</body>
+</html>
